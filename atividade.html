@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WPAN · Redes Pessoais e de Curto Alcance</title>
+<style>
+/* ============ RESET & TOKENS ============ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --blue-900:#012b5c;
+  --blue-800:#013a7a;
+  --blue-700:#004a99;
+  --blue-600:#0058b8;
+  --blue-500:#0a6ec7;
+  --blue-100:#e7f0fa;
+  --blue-50:#f4f8fd;
+  --red:#e30613;
+  --red-soft:#fdecee;
+  --green:#0f9d58;
+  --ink:#0f1b2d;
+  --muted:#5b6b80;
+  --line:#dbe5f0;
+  --white:#fff;
+  --radius:16px;
+  --shadow:0 4px 24px rgba(1,43,92,.07);
+  --shadow-lg:0 14px 40px rgba(1,43,92,.13);
+  --font:"Inter","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  font-family:var(--font);
+  background:var(--blue-50);
+  color:var(--ink);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* ============ BARRA DE PROGRESSO ============ */
+#progress{
+  position:fixed;top:0;left:0;height:3px;width:0%;
+  background:linear-gradient(90deg,var(--blue-600),var(--red));
+  z-index:999;transition:width .1s linear;
+}
+
+/* ============ HEADER ============ */
+header{
+  position:sticky;top:0;z-index:900;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.nav{
+  max-width:1180px;margin:0 auto;
+  padding:12px 20px;
+  display:flex;align-items:center;gap:20px;
+}
+.brand{
+  display:flex;align-items:center;gap:10px;
+  font-weight:800;letter-spacing:-.02em;font-size:.95rem;
+  color:var(--blue-800);white-space:nowrap;flex:0 0 auto;
+}
+.brand .mark{
+  width:30px;height:30px;border-radius:9px;
+  background:linear-gradient(135deg,var(--blue-700),var(--blue-500));
+  position:relative;flex:0 0 auto;
+  box-shadow:0 4px 12px rgba(0,74,153,.3);
+}
+.brand .mark::after{
+  content:"";position:absolute;right:-3px;bottom:-3px;
+  width:12px;height:12px;border-radius:4px;background:var(--red);
+}
+.brand span b{color:var(--red)}
+
+.nav-links{
+  display:flex;gap:6px;margin-left:auto;
+  overflow-x:auto;scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{
+  flex:0 0 auto;
+  font-size:.8rem;font-weight:600;
+  color:var(--muted);text-decoration:none;
+  padding:7px 13px;border-radius:99px;
+  transition:background .25s,color .25s,transform .25s;
+  white-space:nowrap;
+}
+.nav-links a:hover{background:var(--blue-100);color:var(--blue-700);transform:translateY(-1px)}
+.nav-links a.active{background:var(--blue-700);color:#fff}
+
+/* ============ HERO ============ */
+.hero{
+  position:relative;overflow:hidden;
+  background:linear-gradient(150deg,var(--blue-900) 0%,var(--blue-800) 45%,var(--blue-700) 100%);
+  color:#fff;
+  padding:88px 20px 96px;
+}
+.hero::before,.hero::after{
+  content:"";position:absolute;border-radius:50%;
+  filter:blur(80px);pointer-events:none;
+}
+.hero::before{
+  width:440px;height:440px;background:#0a6ec7;opacity:.55;
+  top:-150px;left:-110px;animation:drift 16s ease-in-out infinite;
+}
+.hero::after{
+  width:380px;height:380px;background:var(--red);opacity:.28;
+  bottom:-170px;right:-90px;animation:drift 20s ease-in-out infinite reverse;
+}
+@keyframes drift{
+  0%,100%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(50px,-40px) scale(1.12)}
+}
+.hero-grid{
+  position:absolute;inset:0;pointer-events:none;opacity:.16;
+  background-image:linear-gradient(rgba(255,255,255,.35) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.35) 1px,transparent 1px);
+  background-size:56px 56px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 40%,#000 20%,transparent 75%);
+          mask-image:radial-gradient(ellipse at 50% 40%,#000 20%,transparent 75%);
+}
+.hero-inner{position:relative;max-width:1180px;margin:0 auto;z-index:2}
+
+.tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.22);
+  padding:7px 16px;border-radius:99px;color:#cfe3ff;
+  margin-bottom:22px;
+}
+.tag::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:var(--red);
+  box-shadow:0 0 0 0 rgba(227,6,19,.7);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(227,6,19,.7)}
+  70%{box-shadow:0 0 0 10px rgba(227,6,19,0)}
+  100%{box-shadow:0 0 0 0 rgba(227,6,19,0)}
+}
+.hero h1{
+  font-size:clamp(2rem,5.5vw,3.6rem);
+  line-height:1.1;letter-spacing:-.035em;font-weight:800;
+  max-width:16ch;
+}
+.hero h1 em{
+  font-style:normal;
+  background:linear-gradient(90deg,#7fc0ff,#ffffff 60%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.lead{
+  margin-top:20px;max-width:60ch;
+  font-size:clamp(.95rem,2vw,1.08rem);
+  color:#c2d8f2;
+}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px}
+.chip{
+  font-size:.78rem;font-weight:600;
+  padding:8px 15px;border-radius:99px;
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.18);
+  color:#e3eefb;
+  transition:transform .3s,background .3s;
+}
+.chip:hover{transform:translateY(-3px);background:rgba(255,255,255,.2)}
+
+/* ============ LAYOUT ============ */
+main{max-width:1180px;margin:0 auto;padding:0 20px}
+section{
+  padding:78px 0 10px;
+  scroll-margin-top:88px;
+}
+.sec-head{margin-bottom:38px;max-width:74ch}
+.sec-num{
+  display:inline-block;font-size:.72rem;font-weight:800;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--red);margin-bottom:10px;
+}
+.sec-head h2{
+  font-size:clamp(1.5rem,3.6vw,2.15rem);
+  letter-spacing:-.03em;line-height:1.2;font-weight:800;
+  color:var(--blue-900);
+}
+.sec-head p{margin-top:12px;color:var(--muted);font-size:1rem}
+
+/* ============ CARDS GRID ============ */
+.grid{
+  display:grid;gap:20px;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  align-items:stretch;
+}
+.grid.two{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+
+.card{
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:26px 24px;
+  box-shadow:var(--shadow);
+  position:relative;
+  display:flex;flex-direction:column;
+  transition:transform .35s cubic-bezier(.16,.84,.44,1),
+             box-shadow .35s,border-color .35s;
+}
+.card::before{
+  content:"";position:absolute;left:0;top:0;height:4px;width:100%;
+  border-radius:var(--radius) var(--radius) 0 0;
+  background:linear-gradient(90deg,var(--blue-600),var(--blue-500));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .45s cubic-bezier(.16,.84,.44,1);
+}
+.card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:#c6dcf3}
+.card:hover::before{transform:scaleX(1)}
+.card.accent-red::before{background:linear-gradient(90deg,var(--red),#ff6b74)}
+.card.accent-red:hover{border-color:#f6c9cd}
+
+.card .ico{
+  width:44px;height:44px;border-radius:12px;
+  display:grid;place-items:center;
+  background:var(--blue-100);color:var(--blue-700);
+  font-size:1.25rem;margin-bottom:16px;
+  transition:transform .4s cubic-bezier(.16,.84,.44,1);
+}
+.card:hover .ico{transform:rotate(-6deg) scale(1.08)}
+.card.accent-red .ico{background:var(--red-soft);color:var(--red)}
+
+.card h3{
+  font-size:1.05rem;font-weight:750;letter-spacing:-.02em;
+  color:var(--blue-900);margin-bottom:10px;
+}
+.card p{color:var(--muted);font-size:.92rem}
+.card p + p{margin-top:10px}
+
+/* listas */
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:6px}
+ul.clean li{
+  position:relative;padding-left:20px;
+  font-size:.9rem;color:var(--muted);
+}
+ul.clean li::before{
+  content:"";position:absolute;left:0;top:.6em;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--blue-500);opacity:.85;
+}
+ul.clean li strong{color:var(--blue-800);font-weight:650}
+
+/* sub-blocos de topologia */
+.node-types{
+  margin-top:16px;padding-top:16px;
+  border-top:1px dashed var(--line);
+}
+.node-types h4{
+  font-size:.75rem;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--blue-700);margin-bottom:12px;
+}
+.node{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:9px 0;
+}
+.node .dot{
+  flex:0 0 auto;width:9px;height:9px;border-radius:50%;margin-top:.5em;
+}
+.dot.zc{background:var(--red)}
+.dot.zr{background:var(--blue-600)}
+.dot.zed{background:#7fb2e5}
+.node b{display:block;font-size:.86rem;color:var(--blue-900);font-weight:700}
+.node span{font-size:.83rem;color:var(--muted)}
+
+/* ============ TABELA COMPARATIVA ============ */
+.table-wrap{
+  background:var(--white);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  overflow:hidden;
+}
+table.cmp{width:100%;border-collapse:collapse;font-size:.9rem}
+table.cmp thead th{
+  background:linear-gradient(135deg,var(--blue-800),var(--blue-600));
+  color:#fff;text-align:left;
+  padding:16px 18px;
+  font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+}
+table.cmp thead th:first-child{background:var(--blue-900)}
+table.cmp tbody th{
+  text-align:left;font-weight:700;color:var(--blue-900);
+  font-size:.85rem;padding:16px 18px;
+  background:var(--blue-50);
+  border-bottom:1px solid var(--line);
+  width:20%;
+}
+table.cmp td{
+  padding:16px 18px;color:var(--muted);font-size:.87rem;
+  border-bottom:1px solid var(--line);
+  border-left:1px solid var(--line);
+  vertical-align:top;
+}
+table.cmp tbody tr:last-child th,
+table.cmp tbody tr:last-child td{border-bottom:none}
+table.cmp tbody tr{transition:background .25s}
+table.cmp tbody tr:hover td{background:#f8fbff}
+
+/* ============ ANÁLISE CRÍTICA ============ */
+.pros-cons{display:flex;flex-direction:column;gap:14px;margin-top:auto;padding-top:16px}
+.pc{
+  border-radius:12px;padding:14px 16px;
+  border:1px solid var(--line);
+  background:var(--blue-50);
+}
+.pc.v{background:#f1fbf5;border-color:#cdeedb}
+.pc.l{background:#fef4f5;border-color:#f8d5d9}
+.pc h4{
+  display:flex;align-items:center;gap:8px;
+  font-size:.74rem;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.pc.v h4{color:var(--green)}
+.pc.l h4{color:var(--red)}
+.pc h4 .badge{
+  width:18px;height:18px;border-radius:50%;
+  display:grid;place-items:center;font-size:.65rem;color:#fff;flex:0 0 auto;
+}
+.pc.v h4 .badge{background:var(--green)}
+.pc.l h4 .badge{background:var(--red)}
+.pc p{font-size:.87rem;color:var(--muted)}
+
+
+.qa{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:14px;
+  padding:22px 24px;
+  transition:background .3s,transform .35s;
+}
+.qa + .qa{margin-top:16px}
+.qa:hover{background:rgba(255,255,255,.13);transform:translateX(4px)}
+.qa .lbl{
+  display:inline-block;font-size:.68rem;font-weight:800;
+  letter-spacing:.16em;text-transform:uppercase;
+  padding:4px 11px;border-radius:99px;margin-bottom:12px;
+}
+.qa .lbl.q{background:var(--red);color:#fff}
+.qa .lbl.a{background:rgba(255,255,255,.18);color:#dbeaff}
+.qa p{font-size:.93rem;color:#dbe9fb}
+.qa p em{color:#fff;font-style:italic}
+
+/* ============ FOOTER ============ */
+footer{
+  margin-top:80px;
+  background:var(--blue-900);
+  color:#9db9d8;
+  padding:36px 20px;
+  text-align:center;
+  font-size:.82rem;
+}
+footer .fline{
+  max-width:1180px;margin:0 auto;
+  display:flex;flex-wrap:wrap;gap:14px;
+  align-items:center;justify-content:space-between;
+}
+footer b{color:#fff;font-weight:700}
+footer .dot-sep{color:var(--red)}
+
+/* ============ REVEAL ANIMATION ============ */
+.reveal{
+  opacity:0;transform:translateY(26px);
+  transition:opacity .7s cubic-bezier(.16,.84,.44,1),
+             transform .7s cubic-bezier(.16,.84,.44,1);
+  will-change:opacity,transform;
+}
+.reveal.in{opacity:1;transform:none}
+
+.grid .reveal:nth-child(2){transition-delay:.09s}
+.grid .reveal:nth-child(3){transition-delay:.18s}
+.grid .reveal:nth-child(4){transition-delay:.27s}
+
+/* ============ RESPONSIVO ============ */
+@media (max-width:900px){
+  .nav-links a{padding:6px 11px;font-size:.75rem}
+  .brand span{display:none}
+}
+
+@media (max-width:760px){
+  .hero{padding:64px 20px 72px}
+  section{padding:60px 0 6px}
+
+  /* tabela -> cartões empilhados (sem sobreposição) */
+  .table-wrap{background:transparent;border:none;box-shadow:none;border-radius:0;overflow:visible}
+  table.cmp,table.cmp tbody,table.cmp tr,table.cmp th,table.cmp td{display:block;width:100%}
+  table.cmp thead{display:none}
+  table.cmp tr{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:6px 0 4px;
+    margin-bottom:16px;
+    overflow:hidden;
+  }
+  table.cmp tbody tr:hover td{background:transparent}
+  table.cmp tbody th{
+    background:linear-gradient(135deg,var(--blue-800),var(--blue-600));
+    color:#fff;font-size:.85rem;
+    padding:13px 18px;border-bottom:none;
+    width:100%;
+  }
+  table.cmp td{
+    display:flex;gap:14px;justify-content:space-between;align-items:flex-start;
+    border-left:none;
+    border-bottom:1px dashed var(--line);
+    padding:12px 18px;
+  }
+  table.cmp td:last-child{border-bottom:none}
+  table.cmp td::before{
+    content:attr(data-label);
+    flex:0 0 40%;
+    font-size:.7rem;font-weight:800;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--blue-700);
+    line-height:1.5;
+  }
+  table.cmp td > span{flex:1 1 auto;text-align:right}
+}
+
+@media (max-width:420px){
+  .card{padding:22px 18px}
+  .qa{padding:18px 16px}
+  table.cmp td{flex-direction:column;gap:4px}
+  table.cmp td > span{text-align:left}
+  table.cmp td::before{flex:none}
+}
+
+/* ============ ACESSIBILIDADE ============ */
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition-duration:.01ms !important}
+  .reveal{opacity:1;transform:none}
+  html{scroll-behavior:auto}
+}
+:focus-visible{
+  outline:2px solid var(--red);
+  outline-offset:3px;border-radius:6px;
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- ================= HEADER ================= -->
+<header>
+  <nav class="nav">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <span>WPAN <b>·</b> SENAI</span>
+    </div>
+    <div class="nav-links">
+      <a href="#conceito">Conceito</a>
+      <a href="#ficha">Ficha Técnica</a>
+      <a href="#topologia">Topologia</a>
+      <a href="#casos">Casos de Uso</a>
+      <a href="#analise">Análise Crítica</a>
+    </div>
+  </nav>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="topo">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <div class="tag reveal in">Tema 1 · Redes sem fio</div>
+    <h1 class="reveal in">Redes Pessoais e de <em>Curto Alcance</em></h1>
+    <p class="lead reveal in">
+      WPAN — <strong>Wireless Personal Area Networks</strong>. Interligação de dispositivos
+      num espaço operacional pessoal, tipicamente até 100 metros, com foco em
+      eficiência energética, simplicidade e mobilidade.
+    </p>
+    <div class="chips reveal in">
+      <span class="chip">2,4 GHz ISM</span>
+      <span class="chip">Até 100 m</span>
+      <span class="chip">Bluetooth Clássico</span>
+      <span class="chip">BLE</span>
+      <span class="chip">Zigbee / IEEE 802.15.4</span>
+    </div>
+  </div>
+</section>
+
+<main>
+
+  <!-- ================= 1. CONCEITO ================= -->
+  <section id="conceito">
+    <div class="sec-head reveal">
+      <span class="sec-num">01 · Conceito e Funcionamento</span>
+      <h2>Como cada tecnologia opera</h2>
+      <p>
+        As WPAN destinam-se à interligação de dispositivos num espaço operacional
+        pessoal ou de curto alcance. Cada protocolo resolve esse problema com
+        estratégias distintas de consumo, débito e topologia.
+      </p>
+    </div>
+
+    <div class="grid">
+      <article class="card reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5M6.5 17.5 17.5 6.5M12 2v20"/></svg>
+        </div>
+        <h3>Bluetooth Clássico</h3>
+        <p>
+          Desenvolvido para comunicação contínua ponto a ponto ou ponto-multiponto
+          de curta distância, priorizando o débito de dados em streaming de áudio
+          e transferência de ficheiros.
+        </p>
+        <p>
+          Opera por saltos de frequência (<em>FHSS — Frequency-Hopping Spread Spectrum</em>)
+          para evitar interferências no espetro rádio.
+        </p>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+        </div>
+        <h3>Bluetooth Low Energy (BLE)</h3>
+        <p>
+          Concebido para comunicação intermitente e de baixíssimo consumo.
+          Permanece em modo de repouso (<em>sleep</em>) a maior parte do tempo,
+          acordando apenas para transmitir pequenos pacotes de dados.
+        </p>
+        <p>
+          Usa canais publicitários (<em>advertising</em>) e canais de dados,
+          com tempos de conexão muito curtos.
+        </p>
+      </article>
+
+      <article class="card accent-red reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><circle cx="5" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M6.6 6.6 10.5 10.5M17.4 6.6 13.5 10.5M6.6 17.4 10.5 13.5M17.4 17.4 13.5 13.5"/></svg>
+        </div>
+        <h3>Zigbee</h3>
+        <p>
+          Protocolo baseado na norma <strong>IEEE 802.15.4</strong>, desenhado para
+          redes de sensores e atuadores com baixo débito de dados e alta densidade
+          de nós.
+        </p>
+        <p>
+          Utiliza o mecanismo <em>CSMA/CA</em> para acesso ao meio e destaca-se pela
+          capacidade de formar redes em malha (<em>Mesh</em>) autorregenerativas.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= 2. FICHA TÉCNICA ================= -->
+  <section id="ficha">
+    <div class="sec-head reveal">
+      <span class="sec-num">02 · Ficha Técnica Comparativa</span>
+      <h2>Parâmetros lado a lado</h2>
+      <p>Comparação direta dos principais indicadores técnicos de cada protocolo.</p>
+    </div>
+
+    <div class="table-wrap reveal">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th scope="col">Parâmetro</th>
+            <th scope="col">Bluetooth Clássico</th>
+            <th scope="col">Bluetooth Low Energy (BLE)</th>
+            <th scope="col">Zigbee</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Frequência de Operação</th>
+            <td data-label="Bluetooth Clássico"><span>2,4 GHz ISM</span></td>
+            <td data-label="BLE"><span>2,4 GHz ISM</span></td>
+            <td data-label="Zigbee"><span>2,4 GHz ISM (global), 868 MHz (Europa), 915 MHz (EUA)</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Alcance Típico</th>
+            <td data-label="Bluetooth Clássico"><span>10 a 100 metros</span></td>
+            <td data-label="BLE"><span>10 a 100 metros (extensível em BLE Long Range)</span></td>
+            <td data-label="Zigbee"><span>10 a 100 metros por nó (quilómetros via <em>multi-hop</em>)</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Taxa de Transmissão</th>
+            <td data-label="Bluetooth Clássico"><span>1 Mbps a 3 Mbps</span></td>
+            <td data-label="BLE"><span>125 kbps a 2 Mbps</span></td>
+            <td data-label="Zigbee"><span>20 kbps a 250 kbps</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Consumo de Energia</th>
+            <td data-label="Bluetooth Clássico"><span>Elevado / Médio (alimentação contínua ou recarga diária)</span></td>
+            <td data-label="BLE"><span>Muito Baixo (baterias de botão por meses/anos)</span></td>
+            <td data-label="Zigbee"><span>Ultra Baixo (baterias por vários anos)</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Modulação / Acesso</th>
+            <td data-label="Bluetooth Clássico"><span>GFSK, π/4-DQPSK, 8DPSK / FHSS</span></td>
+            <td data-label="BLE"><span>GFSK / AFH</span></td>
+            <td data-label="Zigbee"><span>O-QPSK / DSSS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= 3. TOPOLOGIA ================= -->
+  <section id="topologia">
+    <div class="sec-head reveal">
+      <span class="sec-num">03 · Topologia e Arquitetura</span>
+      <h2>Como os nós se interligam</h2>
+      <p>A forma como os dispositivos se organizam determina o alcance, a resiliência e a escalabilidade da rede.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="3.5" r="1.8"/><circle cx="5.5" cy="18" r="1.8"/><circle cx="18.5" cy="18" r="1.8"/><path d="M12 9.6V5.3M10.2 13.6 6.9 16.6M13.8 13.6 17.1 16.6"/></svg>
+        </div>
+        <h3>Bluetooth Clássico</h3>
+        <ul class="clean">
+          <li>Topologia <strong>Ponto a Ponto (P2P)</strong> ou <strong>Estrela (Piconet)</strong>.</li>
+          <li>Uma <em>piconet</em> é composta por <strong>1 nó Mestre</strong> (<em>Master</em>) e até <strong>7 nós Escravos</strong> (<em>Slaves</em>) ativos em simultâneo.</li>
+        </ul>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="6" height="6" rx="1.2"/><path d="M12 9V4M12 15v5M9 12H4M15 12h5M9.6 9.6 6 6M14.4 9.6 18 6M9.6 14.4 6 18M14.4 14.4 18 18"/></svg>
+        </div>
+        <h3>Bluetooth Low Energy</h3>
+        <ul class="clean">
+          <li>Topologias <strong>Ponto a Ponto (P2P)</strong>, <strong>Estrela</strong> e <strong>BLE Mesh</strong>.</li>
+          <li>Suporta topologias em malha (<em>flooding-based mesh</em>) para iluminação inteligente e redes de sensores prediais.</li>
+        </ul>
+      </article>
+
+      <article class="card accent-red reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 8v8l8 5 8-5V8z"/><path d="M12 3v18M4 8l8 5 8-5"/></svg>
+        </div>
+        <h3>Zigbee</h3>
+        <ul class="clean">
+          <li>Topologia <strong>Malha (Mesh)</strong>, <strong>Estrela</strong> e <strong>Árvore (Cluster Tree)</strong>.</li>
+        </ul>
+        <div class="node-types">
+          <h4>Tipos de Nós</h4>
+          <div class="node">
+            <span class="dot zc" aria-hidden="true"></span>
+            <div><b>Coordenador (ZC)</b><span>Inicia a rede e gere as chaves de segurança.</span></div>
+          </div>
+          <div class="node">
+            <span class="dot zr" aria-hidden="true"></span>
+            <div><b>Roteador (ZR)</b><span>Repassa pacotes de dados, expandindo o alcance (<em>multi-hop</em>).</span></div>
+          </div>
+          <div class="node">
+            <span class="dot zed" aria-hidden="true"></span>
+            <div><b>Dispositivo Final (ZED)</b><span>Alimentado a bateria; comunica apenas com o seu roteador/coordenador pai.</span></div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= 4. CASOS DE USO ================= -->
+  <section id="casos">
+    <div class="sec-head reveal">
+      <span class="sec-num">04 · Casos de Uso Práticos</span>
+      <h2>Aplicações reais em eletrónica e sistemas embarcados</h2>
+      <p>Onde cada tecnologia se destaca no mundo real.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-5 3 10 2.5-7 2 4h5.5"/></svg>
+        </div>
+        <h3>Wearables e Saúde</h3>
+        <ul class="clean">
+          <li><strong>BLE:</strong> monitores cardíacos, relógios inteligentes (<em>smartwatches</em>) e oxímetros que enviam dados biométricos em tempo real para telemóveis, com consumo mínimo de bateria.</li>
+        </ul>
+      </article>
+
+      <article class="card accent-red reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>
+        </div>
+        <h3>Domótica e Edifícios Inteligentes</h3>
+        <ul class="clean">
+          <li><strong>Zigbee:</strong> lâmpadas inteligentes (ex.: Philips Hue), sensores de presença, interruptores e fechaduras eletrónicas, operando numa rede em malha robusta e sem sobrecarregar o Wi-Fi.</li>
+        </ul>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M8 13h8"/></svg>
+        </div>
+        <h3>Indústria e Eletrónica de Consumo</h3>
+        <ul class="clean">
+          <li><strong>Bluetooth Clássico:</strong> transmissão de áudio sem fios contínuo (<em>headsets</em>, colunas de som) e interfaces HMI industriais de curto alcance.</li>
+          <li><strong>BLE:</strong> balizas (<em>beacons</em>) para localização e navegação <em>indoor</em> em armazéns e centros comerciais.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= 5. ANÁLISE CRÍTICA ================= -->
+  <section id="analise">
+    <div class="sec-head reveal">
+      <span class="sec-num">05 · Análise Crítica</span>
+      <h2>Vantagens e limitações</h2>
+      <p>Um olhar crítico sobre o que cada protocolo oferece — e onde falha.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5M6.5 17.5 17.5 6.5M12 2v20"/></svg>
+        </div>
+        <h3>Bluetooth Clássico</h3>
+        <div class="pros-cons">
+          <div class="pc v">
+            <h4><span class="badge">+</span> Vantagens</h4>
+            <p>Elevada taxa de transmissão para áudio e voz contínuos; maturidade e ampla compatibilidade com dispositivos móveis.</p>
+          </div>
+          <div class="pc l">
+            <h4><span class="badge">−</span> Limitações</h4>
+            <p>Consumo de energia incompatível com dispositivos de sensores alimentados a pilha por longos períodos; limite estrito de conexões simultâneas na <em>piconet</em>.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+        </div>
+        <h3>Bluetooth Low Energy (BLE)</h3>
+        <div class="pros-cons">
+          <div class="pc v">
+            <h4><span class="badge">+</span> Vantagens</h4>
+            <p>Consumo de energia extremamente reduzido; integração nativa com praticamente todos os <em>smartphones</em> e <em>tablets</em> modernos; tempos de conexão muito curtos.</p>
+          </div>
+          <div class="pc l">
+            <h4><span class="badge">−</span> Limitações</h4>
+            <p>Taxa de transmissão reduzida para dados volumosos; alcance limitado sem infraestrutura de repetição.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="card accent-red reveal">
+        <div class="ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><circle cx="5" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M6.6 6.6 10.5 10.5M17.4 6.6 13.5 10.5M6.6 17.4 10.5 13.5M17.4 17.4 13.5 13.5"/></svg>
+        </div>
+        <h3>Zigbee</h3>
+        <div class="pros-cons">
+          <div class="pc v">
+            <h4><span class="badge">+</span> Vantagens</h4>
+            <p>Alta escalabilidade em rede em malha (suporta milhares de nós); consumo ultra baixo de energia; excelente resiliência com rotas redundantes.</p>
+          </div>
+          <div class="pc l">
+            <h4><span class="badge">−</span> Limitações</h4>
+            <p>Taxa de transmissão muito baixa; necessidade de um <em>Gateway</em> dedicado para comunicação com redes IP e nuvem; suscetível a interferências na faixa de 2,4 GHz com redes Wi-Fi locais.</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="fline">
+    <span><b>WPAN</b> — Redes Pessoais e de Curto Alcance <span class="dot-sep">•</span> Tema 1</span>
+    <span>Bluetooth Clássico <span class="dot-sep">·</span> BLE <span class="dot-sep">·</span> Zigbee</span>
+  </div>
+</footer>
+
+<script>
+/* ---------- Reveal ao scroll ---------- */
+(function () {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (prefersReduced) {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+})();
+
+/* ---------- Barra de progresso ---------- */
+(function () {
+  const bar = document.getElementById('progress');
+  let ticking = false;
+
+  function update() {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    const p = h > 0 ? (window.scrollY / h) * 100 : 0;
+    bar.style.width = p + '%';
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  update();
+})();
+
+/* ---------- Link ativo na navegação ---------- */
+(function () {
+  const links = [...document.querySelectorAll('.nav-links a')];
+  const sections = links
+    .map(a => document.querySelector(a.getAttribute('href')))
+    .filter(Boolean);
+
+  if (!sections.length) return;
+
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(a => a.classList.remove('active'));
+        const active = links.find(a => a.getAttribute('href') === '#' + entry.target.id);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-45% 0px -50% 0px' });
+
+  sections.forEach(s => spy.observe(s));
+})();
+</script>
+</body>
+</html>
